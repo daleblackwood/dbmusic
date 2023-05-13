@@ -20,6 +20,18 @@ const style = css`
 	.album img {
 		width: 100%;
 	}
+
+	@media (min-width: 800px) {
+		.albums {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	@media (min-width: 1200px) {
+		.albums {
+			grid-template-columns: repeat(5, 1fr);
+		}
+	}
 `;
 
 export function Albums() {

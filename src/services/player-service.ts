@@ -162,7 +162,6 @@ class PlayerService {
 		if (state.position > 0) {
 			state.state = "playing";
 		}
-		console.log(`[${state.track.name}] Progress: ${state.position.toFixed(1)}s / ${state.duration.toFixed(1)}s`);
 		this.subState.setValue(state, true);
 
 		if (state.position >= state.duration) {

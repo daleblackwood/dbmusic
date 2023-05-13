@@ -6,7 +6,13 @@ import { css } from "@utils";
 
 const style = css`
 	.page {
-		padding: calc(50px + 1rem) 1rem 100px;
+		padding: calc(50px + 1rem) 1rem 180px;
+	}
+
+	@media (max-width: 500px) {
+		.page {
+			padding-top: 1rem;
+		}
 	}
 `;
 

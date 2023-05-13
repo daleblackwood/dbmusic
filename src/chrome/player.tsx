@@ -1,7 +1,7 @@
 import { useSubject } from "observational/hooks";
 import { Icon } from "@components";
 import { playerService, libraryService } from "@services";
-import { css, MOBILE_MEDIA_QUERY } from "@utils";
+import { css, cx } from "@utils";
 
 const style = css`
 	.player {
@@ -15,6 +15,10 @@ const style = css`
 		flex-direction: row;
 		padding: 0 1rem;
 		justify-content: space-between;
+	}
+
+	.trackless {
+		display: none;
 	}
 
 	.buttons {
@@ -48,6 +52,7 @@ const style = css`
 		flex-direction: row;
 		align-items: center;
 		gap: 1rem;
+		max-width: 75%;
 	}
 
 	.track img {
@@ -75,6 +80,10 @@ const style = css`
 	}
 
 	@media(max-width: 500px) {
+		.player {
+			bottom: 80px;
+		}
+
 		.btnPrev, .btnNext {
 			display: none;
 		}
@@ -86,7 +95,7 @@ export function Player() {
 	const imageUrl = libraryService.getTrackArt(state.track);
 
 	return (
-		<div className={style.player}>
+		<div className={cx(style.player, !state.track && style.trackless)}>
 			<div className={style.track}>
 				<img src={imageUrl} />
 				<div className={style.trackTitle} >
