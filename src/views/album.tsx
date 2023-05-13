@@ -1,5 +1,6 @@
-import { libraryService } from "@services"
 import { useSubject } from "observational/hooks";
+import { Track } from "@components";
+import { libraryService } from "@services"
 import { css } from "@utils";
 
 const style = css`
@@ -69,10 +70,8 @@ export function Album(props: { route: string }) {
 			<div className="img">
 			</div>
 			<div className="menu">
-				{tracks.map(x => (
-					<div className="menu-item" key={x.key}>
-						{x.name}
-					</div>
+				{tracks.map((track, i) => (
+					<Track key={track.key} tracks={tracks} index={i} />
 				))}
 			</div>
 		</div>

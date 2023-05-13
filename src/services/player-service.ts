@@ -6,7 +6,7 @@ interface PlayState {
 	index: number;
 	duration: number;
 	position: number;
-	isPlaying: boolean;
+	state: "" | "buffering" | "playing";
 }
 
 const BLANK_STATE: PlayState = {
@@ -14,7 +14,7 @@ const BLANK_STATE: PlayState = {
 	index: -1,
 	duration: 0,
 	position: 0,
-	isPlaying: false
+	state: ""
 };
 
 class PlayerService {
@@ -24,6 +24,12 @@ class PlayerService {
 
     context: AudioContext = new AudioContext();
 	source: AudioBufferSourceNode|null = null;
+	tickInterval = 0;
+	startTime = 0;
+
+	constructor() {
+		this.tickInterval = setInterval(() => this.tick(), 1000);
+	}
 
 	clear() {
 		this.subQueue.setValue([]);
@@ -36,12 +42,12 @@ class PlayerService {
 
 	pause() {
 		let state = this.subState.value;
-		if (!state.isPlaying)
+		if (!state.state)
 			return;
 
 		state = {
 			...state,
-			isPlaying: false
+			state: ""
 		};
 		
 		if (this.source) {
@@ -53,35 +59,36 @@ class PlayerService {
 
 	resume() {
 		let state = this.subState.value;
-		if (state.isPlaying)
+		if (state.state)
 			return;
 
 		state = {
 			...state,
-			isPlaying: true
+			state: "playing"
 		};
-		
-		if (this.source) {
-			this.source.start();
-		}
 
 		this.subState.setValue(state);
 	}
 
-	play(tracks: MusicTrack | MusicTrack[]) {
+	play(tracks: MusicTrack | MusicTrack[], index?: number) {
 		this.clear();
 		if (!Array.isArray(tracks)) {
 			tracks = [tracks];
 		}
 		this.subQueue.setValue(tracks);
-		this.playNext();
+		if (index) {
+			this.playIndex(index);
+		} else {
+			this.playIndex(0);
+		}
 	}
 
 	add(tracks: MusicTrack | MusicTrack[]) {
 		if (!Array.isArray(tracks)) {
 			tracks = [tracks];
 		}
-		this.subQueue.setValue(tracks);
+		const newQueue = this.subQueue.value.concat(tracks);
+		this.subQueue.setValue(newQueue);
 	}
 
     loadAudio(url: string) {
@@ -105,36 +112,32 @@ class PlayerService {
 			console.log("No tracks to play.");
 			return;
 		}
+		
+		if (this.source) {
+			this.source.stop();
+			this.source.disconnect();
+		}
 
 		const state: PlayState = {
 			track,
 			index,
 			duration: DURATION.MS_MINUTE * 3.5,
 			position: 0,
-			isPlaying: true
+			state: "buffering"
 		};
 		this.subState.setValue(state, true);
+		
         this.loadAudio(track.url).then(audioBuffer => {
+			if (this.source) {
+				this.source.stop();
+				this.source.disconnect();
+			}
 			this.source = this.context.createBufferSource();
 			this.source.buffer = audioBuffer;
 
 			// Progress monitoring
-			const startTime = this.context.currentTime;
+			this.startTime = this.context.currentTime;
 			state.duration = audioBuffer.duration;
-			const intervalId = setInterval(() => {
-				if (!state.isPlaying)
-					return;
-
-				state.position = this.context.currentTime - startTime;
-				console.log(`[${track.name}] Progress: ${state.position.toFixed(1)}s / ${state.duration.toFixed(1)}s`);
-				this.subState.setValue(state, true);
-
-				if (state.position >= state.duration) {
-					clearInterval(intervalId);
-					console.log(`Finished playing ${track.name}`);
-					this.playNext();
-				}
-			}, 1000);
 
 			// Connect the source to the audio context's output
 			this.source.connect(this.context.destination);
@@ -149,6 +152,24 @@ class PlayerService {
 			this.playNext();
 		});
     }
+
+	tick() {
+		const state = { ...this.subState.value };
+		if (!state.state || !state.track)
+			return;
+
+		state.position = this.context.currentTime - this.startTime;
+		if (state.position > 0) {
+			state.state = "playing";
+		}
+		console.log(`[${state.track.name}] Progress: ${state.position.toFixed(1)}s / ${state.duration.toFixed(1)}s`);
+		this.subState.setValue(state, true);
+
+		if (state.position >= state.duration) {
+			console.log(`Finished playing ${state.track.name}`);
+			this.playNext();
+		}
+	}
 }
 
 export const playerService = new PlayerService();

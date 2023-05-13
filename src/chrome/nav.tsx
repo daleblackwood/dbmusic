@@ -7,12 +7,19 @@ const style = css`
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		background-color: #111;
+		background-color: rgba(0,0,0,0.85);
+		color: white;
 		font-weight: bold;
 		position: fixed;
 		width: 100%;
 		z-index: 1000;
 		cursor: pointer;
+	}
+
+	@media(max-width: 500px) {
+		.nav {
+			display: none;
+		}
 	}
 `;
 

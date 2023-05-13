@@ -6,7 +6,7 @@ import { css } from "@utils";
 
 const style = css`
 	.page {
-		padding: calc(50px + 1rem) 1rem 1rem;
+		padding: calc(50px + 1rem) 1rem 100px;
 	}
 `;
 

@@ -18,6 +18,8 @@ interface MusicEntry {
 	track: number;
 }
 
+export const DEFAULT_ARTWORK = "blankmusic.jpg";
+
 function parseCollection(entries: Record<string, MusicEntry>) {
 	const collection = new MusicCollection();
 	for (const key in entries) {
@@ -48,7 +50,7 @@ function parseCollection(entries: Record<string, MusicEntry>) {
 			path: folder,
 			artist,
 			date,
-			image: entry.cover ? MEDIA_HOST + entry.cover : "blankmusic.jpg"
+			image: entry.cover ? MEDIA_HOST + entry.cover : DEFAULT_ARTWORK
 		};
 		if (!album) {
 			album = tempAlbum;
@@ -95,6 +97,25 @@ class LibraryService {
 			})
 			.catch(e => reject(e));
 		});
+	}
+
+	getTrackArt(track?: MusicTrack) {
+		if (track) {
+			if (track.image)
+				return track.image;
+			if (track.album) {
+				const album = this.getAlbum(track.album);
+				if (album && album.image)
+					return album.image;
+			}
+		}
+		return DEFAULT_ARTWORK;
+	}
+
+	getAlbum(key: string) {
+		if (!key)
+			return null;
+		return this.subCollection.value.albums.find(x => x.key === key) || null;
 	}
 
 }

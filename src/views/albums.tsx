@@ -5,18 +5,15 @@ import { css } from "@utils";
 
 const style = css`
 	.albums {
-		display: flex;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
 		gap: 1rem;
 		max-width: 100%;
 		direction: col;
-		flex-wrap: wrap;
-		justify-items: center;
 	}
 
 	.album {
 		display: flex;
-		width: 250px;
-		max-width: calc(50% - 0.5rem);
 		flex-grow: 1;
 	}
 
