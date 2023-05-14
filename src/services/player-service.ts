@@ -197,7 +197,7 @@ class PlayerService {
 		state.duration = this.source?.buffer?.duration || 0;
 		this.subState.setValue(state, true);
 
-		if (state.position >= state.duration) {
+		if (state.state === "playing" && state.position >= state.duration) {
 			console.log(`Finished playing ${state.track.name}`);
 			this.playNext();
 		}
