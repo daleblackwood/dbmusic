@@ -55,7 +55,7 @@ class PlayerService {
 				album = libraryService.getAlbum(track?.album);
 			}
 			if (album) {
-				queue = libraryService.subCollection.value.tracks.filter(x => x.key == album?.key);
+				queue = collection.tracks.filter(x => x.album == album?.key);
 				index = queue.findIndex(x => x?.key === track?.key);
 			}
 			this.subQueue.setValue(queue);
