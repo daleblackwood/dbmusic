@@ -1,5 +1,7 @@
 import { Subject } from "observational";
-import { MusicTrack, DURATION } from "@model";
+import { MusicTrack, DURATION, MusicAlbum } from "@model";
+import { appService } from "./app-service";
+import { libraryService } from "./library-service";
 
 interface PlayState {
 	track?: MusicTrack;
@@ -29,6 +31,41 @@ class PlayerService {
 
 	constructor() {
 		this.tickInterval = setInterval(() => this.tick(), 1000);
+		libraryService.subCollection.listen(this, collection => {
+			const route = appService.subRoute.value;
+			let album: MusicAlbum|undefined = undefined;
+			let track: MusicTrack|undefined = undefined;
+			if (route.root === "album") {
+				album = collection.albums.find(x => x.key === route.params[0]);
+				const trackRoute = route.subPaths.find(x => x.root === "track");
+				if (trackRoute) {
+					track = collection.tracks.find(x => x.key === trackRoute.params[0]);
+				}
+			} else if (route.root === "track") {
+				track = collection.tracks.find(x => x.key === route.params[0]);
+			} else {
+				return;
+			}
+			if (!track && !album)
+				return;
+
+			let queue = [track as MusicTrack];
+			let index = 0;
+			if (!album) {
+				album = libraryService.getAlbum(track?.album);
+			}
+			if (album) {
+				queue = libraryService.subCollection.value.tracks.filter(x => x.key == album?.key);
+				index = queue.findIndex(x => x?.key === track?.key);
+			}
+			this.subQueue.setValue(queue);
+			this.subState.setValue({
+				...BLANK_STATE,
+				track,
+				index
+			});
+			this.play(queue, index);
+		}, { immediate: true });
 	}
 
 	clear() {
@@ -52,22 +89,17 @@ class PlayerService {
 		
 		if (this.source) {
 			this.source.stop();
+			this.source = null;
 		}
 
 		this.subState.setValue(state);
 	}
 
 	resume() {
-		let state = this.subState.value;
+		const state = this.subState.value;
 		if (state.state)
 			return;
-
-		state = {
-			...state,
-			state: "playing"
-		};
-
-		this.subState.setValue(state);
+		this.playIndex(state.index, state.position);
 	}
 
 	play(tracks: MusicTrack | MusicTrack[], index?: number) {
@@ -105,7 +137,7 @@ class PlayerService {
 		this.playIndex(this.subState.value.index - 1);
 	}
 
-    playIndex(index: number) {
+    playIndex(index: number, position: number = 0) {
 		index = index % this.subQueue.value.length;
 		const track = this.subQueue.value[index];
 		if (!track) {
@@ -143,7 +175,7 @@ class PlayerService {
 			this.source.connect(this.context.destination);
 
 			// Start playing
-			this.source.start();
+			this.source.start(position);
 
 			console.log(`Playing ${track.name}`);
 		})
@@ -158,10 +190,11 @@ class PlayerService {
 		if (!state.state || !state.track)
 			return;
 
-		state.position = this.context.currentTime - this.startTime;
+		state.position = this.context.currentTime - (this.startTime || 0);
 		if (state.position > 0) {
 			state.state = "playing";
 		}
+		state.duration = this.source?.buffer?.duration || 0;
 		this.subState.setValue(state, true);
 
 		if (state.position >= state.duration) {

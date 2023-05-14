@@ -22,6 +22,7 @@ export const DEFAULT_ARTWORK = "blankmusic.jpg";
 
 function parseCollection(entries: Record<string, MusicEntry>) {
 	const collection = new MusicCollection();
+	collection.hasLoaded = true;
 	for (const key in entries) {
 		const entry = entries[key] as MusicEntry;
 		const path = entry.path;
@@ -95,7 +96,12 @@ class LibraryService {
 				this.subCollection.setValue(collection);
 				resolve(collection);
 			})
-			.catch(e => reject(e));
+			.catch(e => {
+				const blankCollection = new MusicCollection();
+				blankCollection.hasLoaded = true;
+				this.subCollection.setValue(blankCollection);
+				reject(e)
+			});
 		});
 	}
 
@@ -112,10 +118,10 @@ class LibraryService {
 		return DEFAULT_ARTWORK;
 	}
 
-	getAlbum(key: string) {
+	getAlbum(key?: string) {
 		if (!key)
-			return null;
-		return this.subCollection.value.albums.find(x => x.key === key) || null;
+			return undefined;
+		return this.subCollection.value.albums.find(x => x.key === key) || undefined;
 	}
 
 }

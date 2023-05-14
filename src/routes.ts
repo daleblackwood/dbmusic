@@ -1,59 +1,96 @@
 import React from "react";
-import { Album } from "./views/album";
-import { Albums } from "./views/albums";
+import { AlbumView } from "./views/album-view";
+import { LibraryView } from "./views/library-view";
+import { TrackView } from "./views/track-view";
 
 type ComponentType<T = any> = (props: T) => (JSX.Element | null);
 
 interface RouteInfo {
 	title: string;
-	icon: string;
 	view: ComponentType
 }
 
 export const ROUTE = {
-	albums: {
-		title: "Albums",
-		icon: "icons/releases.svg",
-		view: Albums
+	library: {
+		title: "Library",
+		view: LibraryView
 	},
 	album: {
 		title: "Album",
-		icon: "icons/releases.svg",
-		view: Album
+		view: AlbumView
+	},
+	track: {
+		title: "Track",
+		view: TrackView
 	}
 }  as const satisfies Record<string, RouteInfo>;
 
-export type Route = keyof typeof ROUTE;
+export type RoutePath = keyof typeof ROUTE;
 
-export function parseRoute(route: string): Route {
-	if (!route) 
-		return "albums";
-	route = route.trim();
-	if (route.charAt(0) === '#') {
-		route = route.substring(1);
-	}
-	if (route.charAt(0) === '/') {
-		route = route.substring(1);
-	}
-	return route.toLowerCase() as Route;
+export interface PathInfo {
+	path: RoutePath;
+	root: string;
+	params: string[];
 }
 
-export function getRoute(): Route {
-	return parseRoute(location.hash) as Route;
+export interface PathInfoRoot extends PathInfo {
+	subPaths: PathInfo[];
+	fullPath: string;
 }
 
-export function getView(route: Route) {
-	return React.createElement(getViewClass(route), { key: route, route }, []);
-}
-
-function getViewClass(route: Route) {
-	route = parseRoute(route);
-	if (ROUTE[route]) {
-		return ROUTE[route].view;
+export function parseRoute(routePath: string) {
+	const path = parseRoutePath(routePath) || "album";
+	const pathSegs = path.split(":");
+	const subPaths = [] as PathInfo[];
+	for (const pathSeg of pathSegs) {
+		const folders = pathSeg.split("/");
+		const root = folders[0];
+		const params = folders.slice(1);
+		subPaths.push({ path: pathSeg as RoutePath, root, params });
 	}
-	const top = route.split('/')[0] as Route;
+	const fullPath = subPaths.map(x => x.path).join(":");
+	const root = {
+		...subPaths[0],
+		subPaths: subPaths.length > 1 ? subPaths.slice(1) : [],
+		fullPath
+	} as PathInfoRoot;
+	return root;
+}
+
+function parseRoutePath(path: string): RoutePath | undefined {
+	if (!path) 
+		return undefined;
+	path = path.trim();
+	if (path.charAt(0) === '#') {
+		path = path.substring(1);
+	}
+	if (path.charAt(0) === '/') {
+		path = path.substring(1);
+	}
+	return path.toLowerCase() as RoutePath;
+}
+
+export function getRoutePath(): RoutePath {
+	return parseRoutePath(location.hash) as RoutePath;
+}
+
+export function getRoute() {
+	return parseRoute(getRoutePath());
+}
+
+export function getView(path: RoutePath) {
+	const route = parseRoute(path);
+	const view = getViewClass(path);
+	return React.createElement(view, { key: route.root, route: route.path, params: route.params } as any, []);
+}
+
+function getViewClass(path: RoutePath) {
+	if (ROUTE[path]) {
+		return ROUTE[path].view;
+	}
+	const top = path.split('/')[0] as RoutePath;
 	if (ROUTE[top]) {
 		return ROUTE[top].view;
 	}
-	return ROUTE.albums.view;
+	return ROUTE.library.view;
 }

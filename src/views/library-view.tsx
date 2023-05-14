@@ -4,12 +4,13 @@ import { Album } from "@components";
 import { css } from "@utils";
 
 const style = css`
-	.albums {
+	.library {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
 		gap: 1rem;
 		max-width: 100%;
 		direction: col;
+		padding-top: 50px;
 	}
 
 	.album {
@@ -22,24 +23,24 @@ const style = css`
 	}
 
 	@media (min-width: 800px) {
-		.albums {
+		.library {
 			grid-template-columns: repeat(3, 1fr);
 		}
 	}
 
 	@media (min-width: 1200px) {
-		.albums {
+		.library {
 			grid-template-columns: repeat(5, 1fr);
 		}
 	}
 `;
 
-export function Albums() {
+export function LibraryView() {
 	const [music] = useSubject(libraryService.subCollection);
 	if (!music || !music.albums || !music.albums.length)
 		return null;
 	return (
-		<div className={style.albums}>
+		<div className={style.library}>
 			{music.albums.map(x => (
 				<div key={x.key} className={style.album}>
 					<Album album={x} />

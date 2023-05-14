@@ -1,6 +1,6 @@
 import { useSubject } from "observational/hooks";
 import { Track } from "@components";
-import { libraryService } from "@services"
+import { playerService, libraryService } from "@services"
 import { css } from "@utils";
 
 const style = css`
@@ -34,16 +34,21 @@ const style = css`
 		gap: 1rem;
 	}
 
+	.heading h3 {
+		color: var(--accent);
+	}
+
 	.cover {
 		width: 150px;
 		height: 150px;
-		border: 1px solid #333;
+		border-radius: 5px;
 	}
 `;
 
-export function Album(props: { route: string }) {
+export function AlbumView(props: { route: string, params: string[] }) {
 	const [collection] = useSubject(libraryService.subCollection);
-	const albumKey = props.route.split('/')[1];
+	const [state] = useSubject(playerService.subState);
+	const albumKey = props.params[0];
 	const album = collection.albums.find(x => x.key === albumKey);
 	if (!album) {
 		return (
@@ -67,11 +72,10 @@ export function Album(props: { route: string }) {
 					</div>
 				</div>
 			</div>
-			<div className="img">
-			</div>
+			<div className="img" />
 			<div className="menu">
 				{tracks.map((track, i) => (
-					<Track key={track.key} tracks={tracks} index={i} />
+					<Track key={track.key} tracks={tracks} index={i} selected={track.key === state.track?.key } />
 				))}
 			</div>
 		</div>

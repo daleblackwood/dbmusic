@@ -23,4 +23,5 @@ export interface MusicAlbum {
 export class MusicCollection {
 	tracks = [] as MusicTrack[];
 	albums = [] as MusicAlbum[];
+	hasLoaded = false;
 }

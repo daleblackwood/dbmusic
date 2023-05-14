@@ -1,12 +1,37 @@
 import { useSubject } from "observational/hooks";
 import { Nav, Player } from "./chrome";
-import { appService } from "./services";
+import { appService, libraryService } from "./services";
 import { getView } from "./routes";
-import { css } from "@utils";
+import { accentColor, css, cx } from "@utils";
 
 const style = css`
 	.page {
-		padding: calc(50px + 1rem) 1rem 180px;
+		padding: 80px 1rem 180px;
+	}
+
+	.loadStatus {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: 100%;
+		height: 100vh;
+		overflow: hidden;
+	}
+
+	.modal {
+		position: fixed;
+		top: 100vh;
+		left: 0;
+		right: 0;
+		height: 100vh;
+		z-index: 1;
+		padding: 1rem;
+		background-color: #111111;
+		transition: top 0.2s ease-in-out;
+	}
+
+	.open {
+		top: 0;
 	}
 
 	@media (max-width: 500px) {
@@ -16,15 +41,32 @@ const style = css`
 	}
 `;
 
+function updateAccent(path: string) {
+	const color = accentColor(path);
+	const root = document.querySelector<HTMLElement>(":root");
+	if (root) {
+		root.style.setProperty("--accent", color);
+	}
+}
+
 export function App() {
 	const [route] = useSubject(appService.subRoute);
-	const view = getView(route);
-	
+	updateAccent(route.fullPath);
+	const [collection] = useSubject(libraryService.subCollection);
+	if (collection.hasLoaded !== true) {
+		return <div className={style.loadStatus}>Loading...</div>
+	}
+	if (collection.hasLoaded && collection.tracks.length < 1) {
+		return <p>Collection didn't load.</p>
+	}
 	return (
 		<div id="#App">
 			<Nav />
 			<div className={style.page}>
-				{view}
+				{getView(route.path)}
+			</div>
+			<div className={cx(style.modal, route.subPaths.length > 0 && style.open)}>
+				{route.subPaths[0] && getView(route.subPaths[0].path)}
 			</div>
 			<Player />
 		</div>
