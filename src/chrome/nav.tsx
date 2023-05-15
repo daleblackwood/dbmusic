@@ -6,8 +6,6 @@ import { useSubject } from "observational/hooks";
 const style = css`
 	.nav {
 		height: 80px;
-		display: flex;
-		justify-content: space-evenly;
 		align-items: center;
 		background-color: rgba(0,0,0,0.85);
 		color: white;
@@ -15,9 +13,12 @@ const style = css`
 		position: fixed;
 		width: 100%;
 		z-index: 1000;
-		cursor: pointer;
 		gap: 1rem;
 		padding: 1rem;
+		left: 0;
+		display: flex;
+		justify-content: space-evenly;
+		flex-direction: row;
 	}
 
 	.logo {
@@ -62,6 +63,18 @@ const style = css`
 		}
 		.title {
 			display: none;
+		}
+	}
+
+	@media (min-width: 501px) {
+		.nav {
+			top: 0;
+			width: 80px;
+			left: 0;
+			bottom: 0;
+			height: auto;
+			flex-direction: column;
+			padding-bottom: 80px;
 		}
 	}
 `;
@@ -110,7 +123,6 @@ export function Nav() {
 				className={style.logo} 
 				onClick={() => appService.navigate("library")}
 			/>
-			<span className={style.title}>Dale Blackwood Music</span>
 			{links.map(x => (
 				<a key={x.link} href={x.disabled ? location.hash : "#" + x.link}>
 					<Icon key={x.path} 

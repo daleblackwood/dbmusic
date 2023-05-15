@@ -54,6 +54,12 @@ const style = css`
 			bottom: 80px;
 		}
 	}
+
+	@media(min-width: 501px) {
+		.player {
+			z-index: 1001;
+		}
+	}
 `;
 
 export function Player() {

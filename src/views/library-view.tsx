@@ -1,10 +1,14 @@
 import { useSubject } from "observational/hooks";
 import { libraryService } from "@services";
 import { Album, Dropdown } from "@components";
-import { LIBRARY_GROUPING, LibraryGrouping, MusicAlbum, Settings } from "@model";
+import { LIBRARY_GROUPING, MusicAlbum, Settings } from "@model";
 import { css, cx, toKey } from "@utils";
 
 const style = css`
+	.library {
+		margin-top: 80px;
+	}
+
 	.albums {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
@@ -15,7 +19,7 @@ const style = css`
 
 	.groupSelectArea {
 		font-size: 20pt;
-		margin: 80px 0 0.8rem;
+		margin: 0 0 0.8rem;
 	}
 
 	.groupSelect {
@@ -54,12 +58,16 @@ const style = css`
 
 	@media (min-width: 800px) {
 		.library {
+			margin-top: 0;
+		}
+
+		.albums {
 			grid-template-columns: repeat(3, 1fr);
 		}
 	}
 
 	@media (min-width: 1200px) {
-		.library {
+		.albums {
 			grid-template-columns: repeat(5, 1fr);
 		}
 	}
@@ -109,6 +117,7 @@ export function LibraryView() {
 	}
 	return (
 		<div className={style.library}>
+			<h1>Dale Blackwood Music</h1>
 			<div className={style.groupSelectArea}>
 				<Dropdown 
 					className={cx("heading", style.groupSelect)}
@@ -117,7 +126,6 @@ export function LibraryView() {
 					onSelect={grouping => setSettings({ ...settings, grouping } as Settings)} 
 				/>
 			</div>
-			{/*<h3 className={style.heading}>By {settings.grouping}</h3>*/}
 			{groups.map(group => (
 				<div key={group.name} className={style.group}>
 					{settings.grouped && (

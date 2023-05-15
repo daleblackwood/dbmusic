@@ -39,6 +39,13 @@ const style = css`
 			padding-top: 1rem;
 		}
 	}
+
+	@media (min-width: 501px) {
+		.page {
+			padding: 3rem;
+			padding-left: 80px;
+		}
+	}
 `;
 
 function updateAccent(path: string) {
