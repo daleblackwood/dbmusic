@@ -27,7 +27,7 @@ class PlayerService {
     context: AudioContext = new AudioContext();
 	source: AudioBufferSourceNode|null = null;
 	tickInterval = 0;
-	startTime = 0;
+	startOffset = 0;
 
 	constructor() {
 		this.tickInterval = setInterval(() => this.tick(), 1000);
@@ -88,7 +88,9 @@ class PlayerService {
 		};
 		
 		if (this.source) {
-			this.source.stop();
+			try {
+				this.source.stop();
+			} catch (e) {}
 			this.source = null;
 		}
 
@@ -113,6 +115,11 @@ class PlayerService {
 		} else {
 			this.playIndex(0);
 		}
+	}
+
+	skip(position: number) {
+		const state = this.subState.value;
+		this.playIndex(state.index, position);
 	}
 
 	add(tracks: MusicTrack | MusicTrack[]) {
@@ -146,7 +153,9 @@ class PlayerService {
 		}
 		
 		if (this.source) {
-			this.source.stop();
+			try {
+				this.source.stop();
+			} catch (e) {}
 			this.source.disconnect();
 		}
 
@@ -157,7 +166,9 @@ class PlayerService {
 			position: 0,
 			state: "buffering"
 		};
-		this.subState.setValue(state, true);
+		this.subState.setValue(state);
+		this.startOffset = position;
+		this.tick();
 		
         this.loadAudio(track.url).then(audioBuffer => {
 			if (this.source) {
@@ -167,16 +178,15 @@ class PlayerService {
 			this.source = this.context.createBufferSource();
 			this.source.buffer = audioBuffer;
 
-			// Progress monitoring
-			this.startTime = this.context.currentTime;
+			this.startOffset = position - this.context.currentTime;
 			state.duration = audioBuffer.duration;
+			state.state = "playing";
 
-			// Connect the source to the audio context's output
 			this.source.connect(this.context.destination);
 
-			// Start playing
-			this.source.start(position);
-
+			this.source.start(0, position);
+			this.subState.setValue({ ...state });
+			this.tick();
 			console.log(`Playing ${track.name}`);
 		})
 		.catch((error) => {
@@ -190,11 +200,15 @@ class PlayerService {
 		if (!state.state || !state.track)
 			return;
 
-		state.position = this.context.currentTime - (this.startTime || 0);
-		if (state.position > 0) {
-			state.state = "playing";
+		if (state.state === "playing") {
+			state.position = this.context.currentTime + (this.startOffset || 0);
+			if (state.position > 0) {
+				state.state = "playing";
+			}
 		}
-		state.duration = this.source?.buffer?.duration || 0;
+		if (this.source?.buffer?.duration) {
+			state.duration = this.source?.buffer?.duration;
+		}
 		this.subState.setValue(state, true);
 
 		if (state.state === "playing" && state.position >= state.duration) {

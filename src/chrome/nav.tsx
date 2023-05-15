@@ -21,8 +21,8 @@ const style = css`
 	}
 
 	.logo {
-		top: 0.5rem;
-		left: 0.5rem;
+		top: 1rem;
+		left: 1rem;
 		position: fixed;
 		z-index: 1;
 		color: var(--accent);
@@ -69,12 +69,15 @@ const style = css`
 export function Nav() {
 	const [route] = useSubject(appService.subRoute);
 	const [state] = useSubject(playerService.subState);
+	let selected = route && route.root ? route.root : "library";
+	if (route.subPaths.length > 0) {
+		selected = route.subPaths[route.subPaths.length - 1].root;
+	}
 	const links = [
 		{
 			title: "Library",
 			icon: "icons/collection.svg",
 			path: "library",
-			selected: !route || route.root === "library",
 			link: "library"
 		},
 		{
@@ -82,7 +85,6 @@ export function Nav() {
 			icon: "icons/releases.svg",
 			path: "album",
 			disabled: !state.track,
-			selected: route.root === "album",
 			link: "album/" + state.track?.album
 		},
 		{
@@ -90,8 +92,8 @@ export function Nav() {
 			icon: "icons/music.svg",
 			path: "track",
 			disabled: !state.track,
-			selected: route.root === "track",
-			link: "track/" + state.track?.key
+			link: "album/" + state.track?.album + ":track/" + state.track?.key,
+			modal: true
 		},
 		{
 			title: "Settings",
@@ -115,8 +117,8 @@ export function Nav() {
 						src={x.icon} 
 						className={cx(
 							style.icon, 
-							!x.selected && x.disabled && style.disabled,
-							x.selected && style.selected
+							selected !== x.path && x.disabled && style.disabled,
+							selected === x.path && style.selected
 						)}
 					/>
 				</a>

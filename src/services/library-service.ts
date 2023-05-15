@@ -1,5 +1,11 @@
 import { Subject } from "observational";
-import { MusicAlbum, MusicCollection, MusicTrack, MEDIA_HOST } from "@model";
+import { 
+	DEFAULT_SETTINGS, 
+	MEDIA_HOST, 
+	MusicAlbum, 
+	MusicCollection, 
+	MusicTrack
+} from "@model";
 import { toKey, toTitle } from "@utils";
 
 interface MusicEntry {
@@ -16,75 +22,36 @@ interface MusicEntry {
 	path: string;
 	date: string;
 	track: number;
+	genre: string;
 }
 
 export const DEFAULT_ARTWORK = "blankmusic.jpg";
 
-function parseCollection(entries: Record<string, MusicEntry>) {
-	const collection = new MusicCollection();
-	collection.hasLoaded = true;
-	for (const key in entries) {
-		const entry = entries[key] as MusicEntry;
-		const path = entry.path;
-		const lastSlashI = path.lastIndexOf('/');
-		const folder = lastSlashI > 0 ? path.substring(0, lastSlashI) : "";
-		let name = path.substring(lastSlashI + 1);
-		const lastDot = name.lastIndexOf('.');
-		if (lastDot > 0) {
-			name = name.substring(0, lastDot);
-		}
-		let albumName = entry.album || "";
-		let artist = entry.artist || "Dale Blackwood";
-		if (!albumName && lastSlashI > 0) {
-			albumName = path.substring(0, lastSlashI);
-			const nextLastI = folder.lastIndexOf('/');
-			if (nextLastI >= 0) {
-				albumName = folder.substring(nextLastI + 1);
-			}
-		}
-		let date = new Date(entry.date);
-		const albumKey = toKey(albumName);
-		let album = collection.albums.find(x => x.key == albumKey);
-		const tempAlbum: MusicAlbum = {
-			key: albumKey,
-			name: toTitle(albumName),
-			path: folder,
-			artist,
-			date,
-			image: entry.cover ? MEDIA_HOST + entry.cover : DEFAULT_ARTWORK
-		};
-		if (!album) {
-			album = tempAlbum;
-			collection.albums.push(album);
-		} else {
-			album.name = album.name || tempAlbum.name;
-			album.artist = album.artist || tempAlbum.artist;
-			album.date = album.date < tempAlbum.date ? album.date : tempAlbum.date;
-			album.image = album.image || tempAlbum.image;
-		}
-		let track = 1;
-		const music: MusicTrack = {
-			key: toKey(name),
-			path,
-			name,
-			artist,
-			album: albumKey,
-			date,
-			track,
-			url: MEDIA_HOST + path
-		};
-		collection.tracks.push(music);
-	}
-	console.log("collection", collection);
-	return collection;
-}
+const FORMATIVE = ["constance-ep", "constance-ep-ii", "where-you-live", "chaos-ep", "acoustic-scratches-2020"];
 
 class LibraryService {
 
 	subCollection = new Subject<MusicCollection>(new MusicCollection());
+	subSettings = new Subject(DEFAULT_SETTINGS);
 
 	constructor() {
 		this.load();
+		const loadedSettingsStr = localStorage.getItem("settings");
+		if (loadedSettingsStr) {
+			try {
+				const loadedSettings = JSON.parse(loadedSettingsStr);
+				const newSettings = { ...DEFAULT_SETTINGS } as any;
+				for (const key in newSettings) {
+					if (loadedSettings.hasOwnProperty(key)) {
+						newSettings[key] = loadedSettings[key];
+					}
+				}
+				this.subSettings.setValue(newSettings);
+			} catch (e) {}
+		}
+		this.subSettings.listen(this, settings => {
+			localStorage.setItem("settings", JSON.stringify(settings));
+		});
 	}
 
 	load() {
@@ -124,6 +91,68 @@ class LibraryService {
 		return this.subCollection.value.albums.find(x => x.key === key) || undefined;
 	}
 
+}
+
+function parseCollection(entries: Record<string, MusicEntry>) {
+	const collection = new MusicCollection();
+	collection.hasLoaded = true;
+	for (const key in entries) {
+		const entry = entries[key] as MusicEntry;
+		const path = entry.path;
+		const lastSlashI = path.lastIndexOf('/');
+		const folder = lastSlashI > 0 ? path.substring(0, lastSlashI) : "";
+		let name = path.substring(lastSlashI + 1);
+		const lastDot = name.lastIndexOf('.');
+		if (lastDot > 0) {
+			name = name.substring(0, lastDot);
+		}
+		let albumName = entry.album || "";
+		let artist = entry.artist || "Dale Blackwood";
+		if (!albumName && lastSlashI > 0) {
+			albumName = path.substring(0, lastSlashI);
+			const nextLastI = folder.lastIndexOf('/');
+			if (nextLastI >= 0) {
+				albumName = folder.substring(nextLastI + 1);
+			}
+		}
+		let date = new Date(entry.date);
+		const albumKey = toKey(albumName);
+		let album = collection.albums.find(x => x.key == albumKey);
+		const tempAlbum: MusicAlbum = {
+			key: albumKey,
+			name: toTitle(albumName),
+			path: folder,
+			artist,
+			date,
+			year: date.getFullYear(),
+			genre: entry.genre || "Music",
+			image: entry.cover ? MEDIA_HOST + entry.cover : DEFAULT_ARTWORK,
+			formative: FORMATIVE.includes(toKey(artist)) || FORMATIVE.includes(albumKey)
+		};
+		if (!album) {
+			album = tempAlbum;
+			collection.albums.push(album);
+		} else {
+			album.name = album.name || tempAlbum.name;
+			album.artist = album.artist || tempAlbum.artist;
+			album.date = album.date < tempAlbum.date ? album.date : tempAlbum.date;
+			album.image = album.image || tempAlbum.image;
+		}
+		let track = 1;
+		const music: MusicTrack = {
+			key: toKey(name),
+			path,
+			name,
+			artist,
+			album: albumKey,
+			date,
+			track,
+			url: MEDIA_HOST + path
+		};
+		collection.tracks.push(music);
+	}
+	console.log("collection", collection);
+	return collection;
 }
 
 export const libraryService = new LibraryService();

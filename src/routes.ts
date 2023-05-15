@@ -39,7 +39,7 @@ export interface PathInfoRoot extends PathInfo {
 }
 
 export function parseRoute(routePath: string) {
-	const path = parseRoutePath(routePath) || "album";
+	const path = parseRoutePath(routePath) || "library";
 	const pathSegs = path.split(":");
 	const subPaths = [] as PathInfo[];
 	for (const pathSeg of pathSegs) {

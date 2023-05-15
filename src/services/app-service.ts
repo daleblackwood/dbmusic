@@ -25,6 +25,12 @@ class AppService {
 		this.subRoute.setValue(parsed);
 	}
 
+	closeModal() {
+		const currentRoute = this.subRoute.value;
+		const route = { ...currentRoute, subPaths: [], fullPath: currentRoute.root };
+		this.subRoute.setValue(route);
+	}
+
 }
 
 export const appService = new AppService();

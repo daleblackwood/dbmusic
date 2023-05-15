@@ -17,11 +17,34 @@ export interface MusicAlbum {
 	name: string;
 	artist: string;
 	image?: string;
+	year: number;
+	genre: string;
 	date: Date;
+	formative?: boolean;
 }
 
 export class MusicCollection {
 	tracks = [] as MusicTrack[];
 	albums = [] as MusicAlbum[];
 	hasLoaded = false;
+}
+
+export const LIBRARY_GROUPING = [
+	"Year",
+	"Artist",
+	"Genre"
+] as const;
+
+export type LibraryGrouping = typeof LIBRARY_GROUPING[number];
+
+export interface Settings {
+	grouping: LibraryGrouping,
+	grouped: boolean,
+	showFormative: boolean
+}
+
+export const DEFAULT_SETTINGS: Settings = {
+	grouping: "Artist",
+	grouped: false,
+	showFormative: false
 }

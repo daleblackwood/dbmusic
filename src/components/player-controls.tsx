@@ -21,6 +21,7 @@ const style = css`
 		justify-content: center;
 		overflow: visible;
 		margin: 5px;
+		background: black;
 	}
 
 	@media (max-width: 500px) {

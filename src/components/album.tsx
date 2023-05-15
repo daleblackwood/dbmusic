@@ -31,7 +31,7 @@ export function Album(props: { album: MusicAlbum }) {
 				<h4>{props.album.artist}</h4>
 				<h5 className="card-title">{props.album.name}</h5>
 				<p className="card-content">
-					{props.album.date.getFullYear()}
+					{cx(props.album.genre, props.album.date.getFullYear())}
 				</p>
 			</div>
 		</a>

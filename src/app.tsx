@@ -27,7 +27,7 @@ const style = css`
 		z-index: 1;
 		padding: 1rem;
 		background-color: #111111;
-		transition: top 0.2s ease-in-out;
+		transition: top 0.3s ease-in-out;
 	}
 
 	.open {

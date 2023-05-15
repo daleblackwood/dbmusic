@@ -15,10 +15,11 @@ const style = css`
 		flex-direction: row;
 		padding: 0 1rem;
 		justify-content: space-between;
+		transition: bottom 0.4s ease-in-out;
 	}
 
 	.trackless {
-		display: none;
+		bottom: -80px !important;
 	}
 
 	.track {

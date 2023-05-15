@@ -1,18 +1,22 @@
 import { useSubject } from "observational/hooks";
-import { AlbumArt, PlayerControls, ProgressBar } from "@components";
-import { libraryService, playerService } from "@services";
+import { AlbumArt, Icon, PlayerControls, ProgressBar } from "@components";
+import { appService, libraryService, playerService } from "@services";
 import { css } from "@utils";
-import { MusicTrack } from "@model";
 
 const style = css`
 	.track {
+		position: relative;
+		height: calc(100vh - 80px);
+	}
+
+	.trackDetails {
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		flex-direction: column;
-		gap: 1rem;
-		height: calc(100% - 80px);
 		text-align: center;
-		padding-top: 100px;
+		gap: 1rem;
+		height: calc(100% - 100px);
 	}
 
 	.track h3 {
@@ -21,16 +25,27 @@ const style = css`
 
 	.controls {
 		width: 80%;
-		max-width: 400px;
 		height: 20%;
 		position: absolute;
-		bottom: 60px;
+		bottom: 40px;
+		left: 10%;
+		text-align: center;
+	}
+
+	.progress {
+		margin-top: 10px;
 	}
 
 	.art {
 		width: 300px;
 		height: auto;
 		max-width: 50%;
+	}
+
+	.hideIcon svg {
+		width: 40px;
+		height: 40px;
+		margin-top: 20px;
 	}
 `;
 
@@ -48,13 +63,27 @@ export function TrackView(props: { route: string, params: string[] }) {
 	const imageSrc = libraryService.getTrackArt(track);
 	return (
 		<div className={style.track}>
-			<AlbumArt src={imageSrc} className={style.art} />
-			<h2>{track.name}</h2>
-			<h3>{track.artist}</h3>
-			<p>{album?.name + (date ? " (" + date.getFullYear() + ")" : "")}</p>
+			<div className={style.trackDetails}>
+				<AlbumArt src={imageSrc} className={style.art} />
+				<h2>{track.name}</h2>
+				<a href={album ? "#album/" + album.key : "#library"}>
+					<h3>{album?.name + (date ? " (" + date.getFullYear() + ")" : "")}</h3>
+				</a>
+				<h5>{track.artist}</h5>
+			</div>
 			<div className={style.controls}>
 				<PlayerControls />
-				<ProgressBar value={state.position} max={state.duration} />
+				<ProgressBar
+					className={style.progress}
+					getValue={() => state.position} 
+					max={state.duration} 
+					onSet={value => playerService.skip(value)}
+				/>
+				<Icon 
+					className={style.hideIcon} 
+					src="icons/down-close.svg" 
+					onClick={() => appService.closeModal()}
+				/>
 			</div>
 		</div>
 	);

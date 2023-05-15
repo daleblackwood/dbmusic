@@ -1,5 +1,6 @@
 export * from "./album";
 export * from "./album-art";
+export * from "./dropdown";
 export * from "./icon";
 export * from "./loader";
 export * from "./player-controls";
