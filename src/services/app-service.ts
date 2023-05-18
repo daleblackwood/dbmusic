@@ -4,6 +4,7 @@ import { getRoute, parseRoute } from "../routes";
 class AppService {
 
 	subRoute = new Subject(getRoute());
+	subNagged = new Subject(false);
 
 	constructor() {
 		location.hash = getRoute().fullPath;

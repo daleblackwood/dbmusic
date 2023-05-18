@@ -2,6 +2,7 @@ import React from "react";
 import { AlbumView } from "./views/album-view";
 import { LibraryView } from "./views/library-view";
 import { TrackView } from "./views/track-view";
+import { SettingsView } from "./views/settings-view";
 
 type ComponentType<T = any> = (props: T) => (JSX.Element | null);
 
@@ -22,6 +23,10 @@ export const ROUTE = {
 	track: {
 		title: "Track",
 		view: TrackView
+	},
+	settings: {
+		title: "Settings",
+		view: SettingsView
 	}
 }  as const satisfies Record<string, RouteInfo>;
 

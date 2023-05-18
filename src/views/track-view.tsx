@@ -6,7 +6,7 @@ import { css } from "@utils";
 const style = css`
 	.track {
 		position: relative;
-		height: calc(100vh - 80px);
+		height: calc(100% - 80px);
 	}
 
 	.trackDetails {

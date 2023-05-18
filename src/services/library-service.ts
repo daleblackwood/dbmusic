@@ -21,18 +21,20 @@ interface MusicEntry {
 	readme: string;
 	path: string;
 	date: string;
+	year: string;
 	track: number;
 	genre: string;
+	number: number;
 }
 
 export const DEFAULT_ARTWORK = "blankmusic.jpg";
 
-const FORMATIVE = ["constance-ep", "constance-ep-ii", "where-you-live", "chaos-ep", "acoustic-scratches-2020"];
+const FORMATIVE = ["constance", "where-you-live", "chaos-ep", "acoustic-scratches-2020"];
 
 class LibraryService {
 
 	subCollection = new Subject<MusicCollection>(new MusicCollection());
-	subSettings = new Subject(DEFAULT_SETTINGS);
+	subSettings = new Subject({ ...DEFAULT_SETTINGS });
 
 	constructor() {
 		this.load();
@@ -56,7 +58,7 @@ class LibraryService {
 
 	load() {
 		return new Promise((resolve, reject) => {
-			fetch(MEDIA_HOST + "dumblib.php")
+			fetch(MEDIA_HOST + "library.php?r=" + Math.random())
 			.then(response => response.json())
 			.then(entries => {
 				const collection = parseCollection(entries);
@@ -101,10 +103,13 @@ function parseCollection(entries: Record<string, MusicEntry>) {
 		const path = entry.path;
 		const lastSlashI = path.lastIndexOf('/');
 		const folder = lastSlashI > 0 ? path.substring(0, lastSlashI) : "";
-		let name = path.substring(lastSlashI + 1);
-		const lastDot = name.lastIndexOf('.');
-		if (lastDot > 0) {
-			name = name.substring(0, lastDot);
+		let name = entry.name;
+		if (name) {
+			path.substring(lastSlashI + 1);
+			const lastDot = name.lastIndexOf('.');
+			if (lastDot > 0) {
+				name = name.substring(0, lastDot);
+			}
 		}
 		let albumName = entry.album || "";
 		let artist = entry.artist || "Dale Blackwood";
@@ -118,13 +123,19 @@ function parseCollection(entries: Record<string, MusicEntry>) {
 		let date = new Date(entry.date);
 		const albumKey = toKey(albumName);
 		let album = collection.albums.find(x => x.key == albumKey);
+		const dateYear = date.getFullYear() || 0;
+		const albumYear = parseInt(entry.year) || dateYear || 0;;
+		const year = Math.min(dateYear, albumYear);
+		if (albumYear < dateYear) {
+			date = new Date(albumYear, 0, 1);
+		}
 		const tempAlbum: MusicAlbum = {
 			key: albumKey,
 			name: toTitle(albumName),
 			path: folder,
 			artist,
 			date,
-			year: date.getFullYear(),
+			year,
 			genre: entry.genre || "Music",
 			image: entry.cover ? MEDIA_HOST + entry.cover : DEFAULT_ARTWORK,
 			formative: FORMATIVE.includes(toKey(artist)) || FORMATIVE.includes(albumKey)
@@ -138,7 +149,7 @@ function parseCollection(entries: Record<string, MusicEntry>) {
 			album.date = album.date < tempAlbum.date ? album.date : tempAlbum.date;
 			album.image = album.image || tempAlbum.image;
 		}
-		let track = 1;
+		let track = Number(entry.number) || 0;
 		const music: MusicTrack = {
 			key: toKey(name),
 			path,

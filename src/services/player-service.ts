@@ -1,7 +1,9 @@
 import { Subject } from "observational";
+import { Howl } from "howler";
 import { MusicTrack, DURATION, MusicAlbum } from "@model";
 import { appService } from "./app-service";
 import { libraryService } from "./library-service";
+import { toKey } from "@utils";
 
 interface PlayState {
 	track?: MusicTrack;
@@ -24,10 +26,10 @@ class PlayerService {
 	subQueue = new Subject<MusicTrack[]>([]);
 	subState = new Subject(BLANK_STATE);
 
-    context: AudioContext = new AudioContext();
-	source: AudioBufferSourceNode|null = null;
 	tickInterval = 0;
 	startOffset = 0;
+
+	sound: ({ howl: Howl, src: string }) | null = null;
 
 	constructor() {
 		this.tickInterval = setInterval(() => this.tick(), 1000);
@@ -87,11 +89,8 @@ class PlayerService {
 			state: ""
 		};
 		
-		if (this.source) {
-			try {
-				this.source.stop();
-			} catch (e) {}
-			this.source = null;
+		if (this.sound) {
+			this.sound.howl.stop();
 		}
 
 		this.subState.setValue(state);
@@ -130,12 +129,6 @@ class PlayerService {
 		this.subQueue.setValue(newQueue);
 	}
 
-    loadAudio(url: string) {
-        return fetch(url)
-            .then((response) => response.arrayBuffer())
-            .then((arrayBuffer) => this.context.decodeAudioData(arrayBuffer));
-    }
-
 	playNext() {
 		this.playIndex(this.subState.value.index + 1);
 	}
@@ -152,11 +145,22 @@ class PlayerService {
 			return;
 		}
 		
-		if (this.source) {
-			try {
-				this.source.stop();
-			} catch (e) {}
-			this.source.disconnect();
+		if (this.sound) {
+			if (this.sound.src === track.url) {
+				this.sound.howl.seek(position);
+				if (!this.subState.value.state) {
+					this.sound.howl.play();
+					const newState: PlayState = {
+						...this.subState.value,
+						position,
+						state: "playing"
+					};
+					this.subState.setValue(newState);
+				}
+				return;
+			}
+			this.sound.howl.stop();
+			this.sound.howl.unload();
 		}
 
 		const state: PlayState = {
@@ -170,49 +174,46 @@ class PlayerService {
 		this.startOffset = position;
 		this.tick();
 		
-        this.loadAudio(track.url).then(audioBuffer => {
-			if (this.source) {
-				this.source.stop();
-				this.source.disconnect();
-			}
-			this.source = this.context.createBufferSource();
-			this.source.buffer = audioBuffer;
-
-			this.startOffset = position - this.context.currentTime;
-			state.duration = audioBuffer.duration;
-			state.state = "playing";
-
-			this.source.connect(this.context.destination);
-
-			this.source.start(0, position);
-			this.subState.setValue({ ...state });
-			this.tick();
-			console.log(`Playing ${track.name}`);
-		})
-		.catch((error) => {
-			console.error(`Error loading audio file: ${track.url}`, error);
-			this.playNext();
+		const howl = new Howl({
+			src: track.url,
+			html5: true
 		});
+		const sound = {
+			howl,
+			src: track.url,
+		};
+		this.sound = sound;
+		howl.on("load", () => {
+			howl.play();
+			const newState: PlayState = {
+				track,
+				index,
+				duration: howl.duration(),
+				position: 0,
+				state: "playing"
+			};
+			this.subState.setValue(newState);
+			gtag("event", "play", {
+				"track": toKey(track.key),
+				"album": toKey(track.album),
+				"artist": toKey(track.artist)
+			});
+		});
+		howl.on("end", () => this.playNext());
+		howl.on("loaderror", () => this.playNext());
     }
 
 	tick() {
 		const state = { ...this.subState.value };
-		if (!state.state || !state.track)
+		if (!state.state || !state.track || !this.sound)
 			return;
 
 		if (state.state === "playing") {
-			state.position = this.context.currentTime + (this.startOffset || 0);
-			if (state.position > 0) {
-				state.state = "playing";
-			}
-		}
-		if (this.source?.buffer?.duration) {
-			state.duration = this.source?.buffer?.duration;
+			state.position = this.sound.howl.seek();
 		}
 		this.subState.setValue(state, true);
 
 		if (state.state === "playing" && state.position >= state.duration) {
-			console.log(`Finished playing ${state.track.name}`);
 			this.playNext();
 		}
 	}

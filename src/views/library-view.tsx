@@ -49,10 +49,8 @@ const style = css`
 	}
 
 	.groupName {
-		text-align: right;
-		color: var(--accent);
+		color: #666;
 		padding: 0.5rem 0;
-		opacity: 0.5;
 		text-transform: uppercase;
 	}
 
@@ -98,9 +96,10 @@ export function LibraryView() {
 		group.albums.push(album);
 	}
 	for (const group of groups) {
-		group.albums.sort((a, b) => a.date < b.date ? -1 : 1);
+		group.albums.sort((a, b) => a.date < b.date ? 1 : -1);
 	}
-	groups.sort((a, b) => a.albums[0].year < b.albums[0].year ? -1 : 1);
+	groups.sort((a, b) => a.albums[0].date < b.albums[0].date ? 1 : -1);
+	groups = groups.filter(x => x.albums.filter(x => x.formative === false || settings.showFormative).length > 0);
 	if (!settings.grouped) {
 		const onlyGroup: Group = {
 			name: settings.grouping,

@@ -10,6 +10,13 @@ const style = css`
     	background-color: rgba(180, 180, 180, 0.05);
 	}
 
+	.trackNumber {
+		width: 4ex;
+		text-align: center;
+		display: inline-block;
+		color: var(--accent);
+	}
+
 	.selected {
 		color: var(--accent);
     	background-color: rgba(180, 180, 180, 0.1);
@@ -24,6 +31,7 @@ export function Track(props: { tracks: MusicTrack[], index: number, selected?: b
 			key={track.key} 
 			onClick={() => playerService.play(props.tracks, props.index)}
 		>
+			<span className={style.trackNumber}>{track.track}</span>
 			{track.name}
 		</div>
 	);

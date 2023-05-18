@@ -61,6 +61,9 @@ const style = css`
 		.nav {
 			bottom: 0;
 		}
+		body[data-full-phone=true] .nav {
+			padding-bottom: 30px;
+		}
 		.title {
 			display: none;
 		}

@@ -30,9 +30,9 @@ export class MusicCollection {
 }
 
 export const LIBRARY_GROUPING = [
-	"Year",
 	"Artist",
-	"Genre"
+	"Genre",
+	"Year"
 ] as const;
 
 export type LibraryGrouping = typeof LIBRARY_GROUPING[number];

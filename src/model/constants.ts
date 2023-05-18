@@ -1,4 +1,4 @@
-export const MEDIA_HOST = "http://music.daleblackwood.com/";
+export const MEDIA_HOST = "https://music.daleblackwood.com/";
 
 const MS_SECOND = 1000;
 const MS_MINUTE = MS_SECOND * 60;
