@@ -1,5 +1,5 @@
 import { useSubject } from "observational/hooks";
-import { Track } from "@components";
+import { Markup, Track } from "@components";
 import { playerService, libraryService } from "@services"
 import { css } from "@utils";
 
@@ -21,7 +21,15 @@ const style = css`
 		background-size: cover;
 		background-position: center;
 		background-repeat: no-repeat;
-		opacity: 0.2;
+	}
+
+	.bgDither {
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		background: url("bgdither.png") repeat;
 	}
 
 	.titles {
@@ -43,12 +51,35 @@ const style = css`
 		height: 120px;
 		border-radius: 5px;
 	}
+
+	.content {
+		margin-top: 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	@media (min-width: 800px) {
+		.content {
+			flex-direction: row;
+		}
+
+		.content > * {
+			width: 50%;
+		}
+
+		.info {
+			padding: 1rem;
+		}
+	}
 `;
 
 export function AlbumView(props: { route: string, params: string[] }) {
 	const [collection] = useSubject(libraryService.subCollection);
 	const [state] = useSubject(playerService.subState);
 	const albumKey = props.params[0];
+	const trackKey = props.params[2] == "track" ? props.params[3] : undefined;
+	console.log("track", trackKey);
 	const album = collection.albums.find(x => x.key === albumKey);
 	if (!album) {
 		return (
@@ -60,6 +91,7 @@ export function AlbumView(props: { route: string, params: string[] }) {
 		<div className="page">
 			<div className={style.header}>
 				<div className={style.bgImage} style={{ backgroundImage: "url('" + album.image + "')"}} />
+				<div className={style.bgDither} />
 				<div className={style.titles}>
 					<img className={style.cover} src={album.image} />
 					<div className={style.heading}>
@@ -73,10 +105,21 @@ export function AlbumView(props: { route: string, params: string[] }) {
 				</div>
 			</div>
 			<div className="img" />
-			<div className="menu">
-				{tracks.map((track, i) => (
-					<Track key={track.key} tracks={tracks} index={i} selected={track.key === state.track?.key } />
-				))}
+			<div className={style.content}>
+				<div className={style.tracks}>
+					{tracks.map((track, i) => (
+						<Track 
+							key={track.key} 
+							tracks={tracks} 
+							index={i} 
+							selected={track.key === state.track?.key}
+							onSelect={undefined/*x => cappService.appendTrack(x)*/}
+						/>
+					))}
+				</div>
+				<div className={style.info}>
+					<Markup className={style.markup} path={album.markup} />
+				</div>
 			</div>
 		</div>
 	);

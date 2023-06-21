@@ -23,13 +23,16 @@ const style = css`
 	}
 `;
 
-export function Track(props: { tracks: MusicTrack[], index: number, selected?: boolean }) {
+export function Track(props: { tracks: MusicTrack[], index: number, selected?: boolean, onSelect?: (key: string) => unknown }) {
 	const track = props.tracks[props.index];
 	return (
 		<div 
 			className={cx(style.track, props.selected && style.selected)} 
 			key={track.key} 
-			onClick={() => playerService.play(props.tracks, props.index)}
+			onClick={() => {
+				playerService.play(props.tracks, props.index);
+				props.onSelect && props.onSelect(track.key);
+			}}
 		>
 			<span className={style.trackNumber}>{track.track}</span>
 			{track.name}

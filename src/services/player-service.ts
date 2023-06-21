@@ -68,6 +68,26 @@ class PlayerService {
 			});
 			this.play(queue, index);
 		}, { immediate: true });
+		window.addEventListener("keydown", e => {
+			if (e.keyCode == 37) {
+				this.playPrev();
+			}
+			switch (e.keyCode) {
+				case 37:
+					this.playPrev();
+					break;
+				case 39:
+					this.playNext();
+					break;
+				case 32:
+					if (this.subState.value.state == "playing") {
+						this.pause();
+					} else {
+						this.resume();
+					}
+					break;
+			}
+		});
 	}
 
 	clear() {
@@ -198,6 +218,10 @@ class PlayerService {
 				"album": toKey(track.album),
 				"artist": toKey(track.artist)
 			});
+			gtag("event", "page_view", {
+				page_title: track.name,
+				page_location: track.url
+			});
 		});
 		howl.on("end", () => this.playNext());
 		howl.on("loaderror", () => this.playNext());
@@ -214,7 +238,7 @@ class PlayerService {
 		this.subState.setValue(state, true);
 
 		if (state.state === "playing" && state.position >= state.duration) {
-			this.playNext();
+			//this.playNext();
 		}
 	}
 }

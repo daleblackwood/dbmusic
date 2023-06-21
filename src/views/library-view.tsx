@@ -1,7 +1,7 @@
 import { useSubject } from "observational/hooks";
 import { libraryService } from "@services";
 import { Album, Dropdown } from "@components";
-import { LIBRARY_GROUPING, MusicAlbum, Settings } from "@model";
+import { LIBRARY_GROUPINGS, MusicAlbum, Settings } from "@model";
 import { css, cx, toKey } from "@utils";
 
 const style = css`
@@ -81,25 +81,32 @@ export function LibraryView() {
 	const [settings, setSettings] = useSubject(libraryService.subSettings);
 	if (!collection || !collection.albums || !collection.albums.length)
 		return null;
-	const groupKey = settings.grouping.toLowerCase() as keyof MusicAlbum;
+	const groupKeys = settings.grouping.split(".");
+	const groupType = groupKeys[0];
 	let groups = [] as Group[];
-	for (const album of collection.albums) {
-		const name = String(album[groupKey] || "");
-		let group = groups.find(x => toKey(x.name) === toKey(name));
-		if (!group) {
-			group = {
-				name,
-				albums: []
-			};
-			groups.push(group);
+	if (groupType === "track") {
+		
+
+	} else {
+		for (const album of collection.albums) {
+			const groupKey = groupKeys[groupKeys.length - 1] as keyof MusicAlbum;
+			const name = String(album[groupKey] || "");
+			let group = groups.find(x => toKey(x.name) === toKey(name));
+			if (!group) {
+				group = {
+					name,
+					albums: []
+				};
+				groups.push(group);
+			}
+			group.albums.push(album);
 		}
-		group.albums.push(album);
+		for (const group of groups) {
+			group.albums.sort((a, b) => a.date < b.date ? 1 : -1);
+		}
+		groups.sort((a, b) => a.albums[0].date < b.albums[0].date ? 1 : -1);
+		groups = groups.filter(x => x.albums.filter(x => x.formative === false || settings.showFormative).length > 0);
 	}
-	for (const group of groups) {
-		group.albums.sort((a, b) => a.date < b.date ? 1 : -1);
-	}
-	groups.sort((a, b) => a.albums[0].date < b.albums[0].date ? 1 : -1);
-	groups = groups.filter(x => x.albums.filter(x => x.formative === false || settings.showFormative).length > 0);
 	if (!settings.grouped) {
 		const onlyGroup: Group = {
 			name: settings.grouping,
@@ -110,10 +117,6 @@ export function LibraryView() {
 		}
 		groups = [onlyGroup];
 	}
-	const filterOptions = {} as Record<string, string>;
-	for (const groupKey of LIBRARY_GROUPING) {
-		filterOptions[groupKey] = "By " + groupKey;
-	}
 	return (
 		<div className={style.library}>
 			<h1>Dale Blackwood Music</h1>
@@ -121,7 +124,7 @@ export function LibraryView() {
 				<Dropdown 
 					className={cx("heading", style.groupSelect)}
 					selected={settings.grouping}
-					options={filterOptions}
+					options={LIBRARY_GROUPINGS}
 					onSelect={grouping => setSettings({ ...settings, grouping } as Settings)} 
 				/>
 			</div>

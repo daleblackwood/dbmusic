@@ -8,6 +8,7 @@ export interface MusicTrack {
 	track: number;
 	image?: string;
 	album?: string;
+	markup?: string;
 	url: string;
 }
 
@@ -20,6 +21,7 @@ export interface MusicAlbum {
 	year: number;
 	genre: string;
 	date: Date;
+	markup?: string;
 	formative?: boolean;
 }
 
@@ -29,13 +31,14 @@ export class MusicCollection {
 	hasLoaded = false;
 }
 
-export const LIBRARY_GROUPING = [
-	"Artist",
-	"Genre",
-	"Year"
-] as const;
+export const LIBRARY_GROUPINGS = {
+	"album.artist": "Album by Artist",
+	"album.genre": "Album by Genre",
+	"album.year": "Album by Year",
+	"track.date": "Track by Date"
+ } as const;
 
-export type LibraryGrouping = typeof LIBRARY_GROUPING[number];
+export type LibraryGrouping = keyof typeof LIBRARY_GROUPINGS;
 
 export interface Settings {
 	grouping: LibraryGrouping,

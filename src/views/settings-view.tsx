@@ -15,6 +15,7 @@ const style = css`
 	.panel {
 		background: #111;
 		padding: 1rem;
+		margin: 0 0 2rem;
 	}
 
 	.field {
@@ -59,14 +60,14 @@ export function SettingsView() {
 					</div>
 				</form>
 			</div>
-			<h4>About</h4>
+			<h4>About DbMusic</h4>
 			<div className={style.panel}>
 				<p>
-					This application was built by Dale Blackwood to archive and display some lesser
-					known works.
+					DbMusic (pronounced D Flat Music) was built by Dale Blackwood to archive and make accessible some of his lesser
+					known works on <a href="https://music.daleblackwood.com" target="_blank">music.daleblackwood.com.</a>
 				</p>
 				<p>
-					The application was built using React, Vite and Howler.
+					The application was built from ground up using React and Howler libraries on a Vite and NodeJS toolchain. The source code and licensing information is publically available on <a href="https://github.com/daleblackwood/dbmusic" target="_blank">Dale's Github.</a>
 				</p>
 			</div>
 		</div>

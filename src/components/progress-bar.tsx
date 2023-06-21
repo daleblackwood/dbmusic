@@ -136,7 +136,6 @@ export class ProgressBar extends Component<{
 	}
 
 	stopDrag = (e: MouseEvent|TouchEvent) => {
-		console.log("stop drag", e);
 		const parent = this.refParent.current;
 		if (!parent || !this.isDragging)
 			return;

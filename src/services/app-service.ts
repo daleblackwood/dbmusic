@@ -14,7 +14,7 @@ class AppService {
 			this.subRoute.setValue(route);
 			window.scrollTo(0, 0);
 		});
-		this.subRoute.listen(this, x => console.log("route", x))
+		this.subRoute.listen(this, x => console.log("route", x.fullPath, x.params))
 	}
 
 	navigate(route: string, modal?: boolean) {

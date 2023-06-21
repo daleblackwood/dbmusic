@@ -9,10 +9,10 @@ export function css(cssMarkup: string | string[] | TemplateStringsArray) {
 	}
 	const result = {} as Record<string, string>;
 	if (cssMarkup) {
-		const suffix = "C" + (++index);
+		const suffix = "_c" + String(++index);
 		const modifiedCSS = cssMarkup.replace(/\.([^\s{,]+)/g, match => {
 			const className = match.substring(1);
-			if (className.indexOf(";") >= 0)
+			if (className.indexOf(";") >= 0 || className.indexOf("\"") >= 0)
 				return match;
 			const firstChar = className.charCodeAt(0);
 			if (firstChar >= CHAR_0 && firstChar <= CHAR_9)

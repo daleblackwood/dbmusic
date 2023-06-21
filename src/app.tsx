@@ -60,7 +60,9 @@ const style = css`
 
 	@media (max-width: 500px) {
 		.page {
-			padding-top: 1rem;
+			height: calc(100% - 80px);
+			padding: 1rem 1rem 80px;
+			overflow: scroll;
 		}
 	}
 

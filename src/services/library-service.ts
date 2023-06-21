@@ -25,6 +25,7 @@ interface MusicEntry {
 	track: number;
 	genre: string;
 	number: number;
+	markdown?: string;
 }
 
 export const DEFAULT_ARTWORK = "blankmusic.jpg";
@@ -129,6 +130,7 @@ function parseCollection(entries: Record<string, MusicEntry>) {
 		if (albumYear < dateYear) {
 			date = new Date(albumYear, 0, 1);
 		}
+		const markup = entry.markdown;
 		const tempAlbum: MusicAlbum = {
 			key: albumKey,
 			name: toTitle(albumName),
@@ -138,7 +140,8 @@ function parseCollection(entries: Record<string, MusicEntry>) {
 			year,
 			genre: entry.genre || "Music",
 			image: entry.cover ? MEDIA_HOST + entry.cover : DEFAULT_ARTWORK,
-			formative: FORMATIVE.includes(toKey(artist)) || FORMATIVE.includes(albumKey)
+			formative: FORMATIVE.includes(toKey(artist)) || FORMATIVE.includes(albumKey),
+			markup
 		};
 		if (!album) {
 			album = tempAlbum;
@@ -148,6 +151,7 @@ function parseCollection(entries: Record<string, MusicEntry>) {
 			album.artist = album.artist || tempAlbum.artist;
 			album.date = album.date < tempAlbum.date ? album.date : tempAlbum.date;
 			album.image = album.image || tempAlbum.image;
+			album.markup = album.markup || markup;
 		}
 		let track = Number(entry.number) || 0;
 		const music: MusicTrack = {
@@ -158,11 +162,11 @@ function parseCollection(entries: Record<string, MusicEntry>) {
 			album: albumKey,
 			date,
 			track,
-			url: MEDIA_HOST + path
+			url: MEDIA_HOST + path,
+			markup
 		};
 		collection.tracks.push(music);
 	}
-	console.log("collection", collection);
 	return collection;
 }
 
