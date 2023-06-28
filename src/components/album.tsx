@@ -20,6 +20,7 @@ const style = css`
 		background-position: center;
 		background-repeat: no-repeat;
 		border-radius: 5px;
+		object-fit: fill;
 	}
 `;
 
