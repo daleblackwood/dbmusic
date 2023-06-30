@@ -88,7 +88,7 @@ def create_hash_map(dir_in_list, date_file):
 				mod_time_str = mod_time_date.strftime('%Y-%m-%d %H:%M:%S')
 				if checksum not in files_map:
 					files_map[checksum] = mod_time_date
-					print(f"Added to map: {file_path} ({mod_time_str})")
+					print(f"Found: {file_path} ({mod_time_str})")
 
 	with open(date_file, 'w') as f:
 		for k, v in files_map.items():
